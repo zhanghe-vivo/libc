@@ -21,7 +21,14 @@
     missing_unsafe_on_extern,
     edition_2024_expr_fragment_specifier,
     // Allowed globally, the warning is enabled in individual modules as we work through them
-    unsafe_op_in_unsafe_fn
+    unsafe_op_in_unsafe_fn,
+    // FIXME: temporarily allow dead_code to fix CI:
+    // - https://github.com/rust-lang/libc/issues/3740
+    // - https://github.com/rust-lang/rust/pull/126456
+    dead_code,
+    // FIXME: We don't need this if blueos support go to upstream.
+    internal_features,
+    hidden_glob_reexports,
 )]
 #![cfg_attr(libc_deny_warnings, deny(warnings))]
 // Attributes needed when building as part of the standard library
