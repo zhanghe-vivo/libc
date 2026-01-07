@@ -212,7 +212,6 @@ pub const B2500000: ::c_uint = 0o010014;
 pub const B3000000: ::c_uint = 0o010015;
 pub const B3500000: ::c_uint = 0o010016;
 pub const B4000000: ::c_uint = 0o010017;
-// c_oflags
 
 pub const OPOST: ::c_uint = 0x01;
 pub const ONLCR: ::c_uint = 0x04;
