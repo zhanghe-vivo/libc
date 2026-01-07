@@ -221,7 +221,6 @@ pub const ONLRET: ::c_uint = 0x20;
 pub const OFILL: ::c_uint = 0x40;
 pub const OFDEL: ::c_uint = 0x80;
 
-// CCS
 pub const VINTR: usize = 0;
 pub const VQUIT: usize = 1;
 pub const VERASE: usize = 2;
