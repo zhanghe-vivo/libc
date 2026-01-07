@@ -182,7 +182,6 @@ pub const PARENB: ::c_uint = 0x1000;
 pub const PARODD: ::c_uint = 0x2000;
 pub const HUPCL: ::c_uint = 0x4000;
 
-// baud rates const
 pub const B0: ::c_uint = 0o000000;
 pub const B50: ::c_uint = 0o000001;
 pub const B75: ::c_uint = 0o000002;
