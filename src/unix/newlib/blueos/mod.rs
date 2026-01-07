@@ -171,7 +171,6 @@ pub const ICANON: ::c_uint = 0x00000002;
 pub const IEXTEN: ::c_uint = 0x00008000;
 pub const NOFLSH: ::c_uint = 0x00000080;
 pub const TOSTOP: ::c_uint = 0x00000100;
-// c_cflags
 pub const CSIZE: ::c_uint = 0x300;
 pub const CS6: ::c_uint = 0x100;
 pub const CS7: ::c_uint = 0x200;
