@@ -123,7 +123,7 @@ s! {
         pub __librs_internal_align: [::c_int; 0],
     }
 }
-// add for ioctl support
+// For ioctl libcall.
 pub const TCGETS: ::c_ulong = 0x5401;
 pub const TCSETS: ::c_ulong = 0x5402;
 pub const TCSETSW: ::c_ulong = 0x5403;
