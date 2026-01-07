@@ -146,7 +146,6 @@ pub const TCION: ::c_int = 3;
 pub const TCIFLUSH: ::c_int = 0;
 pub const TCOFLUSH: ::c_int = 1;
 pub const TCIOFLUSH: ::c_int = 2;
-// c_iflags
 pub const IGNBRK: ::c_uint = 0x00000001;
 pub const BRKINT: ::c_uint = 0x00000002;
 pub const IGNPAR: ::c_uint = 0x00000004;
