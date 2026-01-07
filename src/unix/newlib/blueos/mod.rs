@@ -159,7 +159,6 @@ pub const IXANY: ::c_uint = 0x00000800;
 pub const IMAXBEL: ::c_uint = 0x00002000;
 pub const IXON: ::c_uint = 0x00000400;
 pub const IXOFF: ::c_uint = 0x00001000;
-// c_lflags
 pub const ECHO: ::c_uint = 0x00000008;
 pub const ECHOKE: ::c_uint = 0x00000800;
 pub const ECHOE: ::c_uint = 0x00000010;
