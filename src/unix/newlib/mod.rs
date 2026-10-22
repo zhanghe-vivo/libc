@@ -10,6 +10,7 @@ cfg_if! {
         pub type clockid_t = c_ulong;
     }
 }
+pub type pthread_spinlock_t = c_int;
 
 cfg_if! {
     if #[cfg(any(target_os = "espidf", target_os = "vita"))] {
@@ -20,6 +21,10 @@ cfg_if! {
         pub type dev_t = u64;
         pub type ino_t = u64;
         pub type off_t = i64;
+    } else if #[cfg(target_os = "blueos")] {
+        pub type dev_t = c_ushort;
+        pub type ino_t = c_ushort;
+        pub type off_t = c_long;
     } else if #[cfg(any(target_arch = "arm", target_arch = "powerpc"))] {
         pub type dev_t = u32;
         pub type ino_t = u32;
@@ -36,8 +41,14 @@ pub type key_t = c_int;
 pub type loff_t = c_longlong;
 pub type mode_t = c_uint;
 pub type nfds_t = u32;
+#[cfg(not(target_os = "blueos"))]
 pub type nlink_t = c_ushort;
+#[cfg(target_os = "blueos")]
+pub type nlink_t = c_ushort;
+#[cfg(target_pointer_width = "32")]
 pub type pthread_t = c_ulong;
+#[cfg(target_pointer_width = "64")]
+pub type pthread_t = c_ulonglong;
 pub type pthread_key_t = c_uint;
 cfg_if! {
     if #[cfg(target_os = "rtems")] {
@@ -73,6 +84,8 @@ cfg_if! {
         target_os = "vita"
     ))] {
         pub type time_t = c_long;
+    } else if #[cfg(target_os = "blueos")] {
+        pub type time_t = c_longlong;
     } else {
         pub type time_t = i64;
     }
@@ -208,9 +221,16 @@ s! {
         pub c_ospeed: u32,
     }
 
+    #[cfg_attr(all(target_os = "blueos",target_pointer_width = "64"), repr(C, align(8)))]
+    #[cfg_attr(all(target_os = "blueos",target_pointer_width = "32"), repr(C, align(4)))]
     pub struct sem_t {
         // Unverified
+        #[cfg(not(target_os = "blueos"))]
         __size: [c_char; 16],
+        #[cfg(all(target_os = "blueos", target_pointer_width = "64"))]
+        __size: [c_char; 8], // librs current implementation
+        #[cfg(all(target_os = "blueos", target_pointer_width = "32"))]
+        __size: [c_char; 4],
     }
 
     pub struct Dl_info {
@@ -236,6 +256,8 @@ s! {
         bits: [u32; 32],
     }
 
+    #[cfg_attr(all(target_os = "blueos",target_pointer_width = "64"), repr(C, align(8)))]
+    #[cfg_attr(all(target_os = "blueos",target_pointer_width = "32"), repr(C, align(4)))]
     pub struct pthread_attr_t {
         // Unverified
         #[cfg(not(target_os = "espidf"))]
@@ -266,14 +288,14 @@ s! {
     #[cfg_attr(
         all(
             target_pointer_width = "32",
-            any(target_arch = "mips", target_arch = "arm", target_arch = "powerpc")
+            any(target_arch = "mips", target_arch = "arm", target_arch = "powerpc", target_arch = "riscv32")
         ),
         repr(align(4))
     )]
     #[cfg_attr(
         any(
             target_pointer_width = "64",
-            not(any(target_arch = "mips", target_arch = "arm", target_arch = "powerpc"))
+            not(any(target_arch = "mips", target_arch = "arm", target_arch = "powerpc", target_arch = "riscv32"))
         ),
         repr(align(8))
     )]
@@ -285,14 +307,14 @@ s! {
     #[cfg_attr(
         all(
             target_pointer_width = "32",
-            any(target_arch = "mips", target_arch = "arm", target_arch = "powerpc")
+            any(target_arch = "mips", target_arch = "arm", target_arch = "powerpc", target_arch = "riscv32")
         ),
         repr(align(4))
     )]
     #[cfg_attr(
         any(
             target_pointer_width = "64",
-            not(any(target_arch = "mips", target_arch = "arm", target_arch = "powerpc"))
+            not(any(target_arch = "mips", target_arch = "arm", target_arch = "powerpc", target_arch = "riscv32"))
         ),
         repr(align(8))
     )]
@@ -301,6 +323,9 @@ s! {
         size: [u8; crate::__SIZEOF_PTHREAD_RWLOCK_T],
     }
 
+    // BlueOS uses 32-bit `long` (`c_long = i32`), so `pthread_mutexattr_t`
+    // aligns to 4 on all targets including 64-bit. This matches the librs
+    // `MutexAttr` struct which is `#[repr(C)]` with `c_int` fields.
     #[cfg_attr(
         any(
             target_pointer_width = "32",
@@ -308,7 +333,8 @@ s! {
             target_arch = "powerpc64",
             target_arch = "mips64",
             target_arch = "s390x",
-            target_arch = "sparc64"
+            target_arch = "sparc64",
+            target_os = "blueos",
         ),
         repr(align(4))
     )]
@@ -319,7 +345,8 @@ s! {
             target_arch = "powerpc64",
             target_arch = "mips64",
             target_arch = "s390x",
-            target_arch = "sparc64"
+            target_arch = "sparc64",
+            target_os = "blueos",
         )),
         repr(align(8))
     )]
@@ -422,6 +449,26 @@ cfg_if! {
         pub const __SIZEOF_PTHREAD_CONDATTR_T: usize = 24;
         pub const __SIZEOF_PTHREAD_RWLOCK_T: usize = 32;
         pub const __SIZEOF_PTHREAD_RWLOCKATTR_T: usize = 8;
+        pub const __SIZEOF_PTHREAD_BARRIER_T: usize = 32;
+    } else if #[cfg(target_os = "blueos")] {
+        const __PTHREAD_INITIALIZER_BYTE: u8 = 0;
+        #[cfg(target_pointer_width = "32")]
+        pub const __SIZEOF_PTHREAD_ATTR_T: usize = 20;
+        #[cfg(target_pointer_width = "64")]
+        pub const __SIZEOF_PTHREAD_ATTR_T: usize = 40;
+        #[cfg(target_pointer_width = "32")]
+        pub const __SIZEOF_PTHREAD_MUTEX_T: usize = 12;
+        #[cfg(target_pointer_width = "64")]
+        pub const __SIZEOF_PTHREAD_MUTEX_T: usize = 24;
+        pub const __SIZEOF_PTHREAD_MUTEXATTR_T: usize = 20;
+        #[cfg(target_pointer_width = "32")]
+        pub const __SIZEOF_PTHREAD_COND_T: usize = 4;
+        #[cfg(target_pointer_width = "64")]
+        pub const __SIZEOF_PTHREAD_COND_T: usize = 16;
+        pub const __SIZEOF_PTHREAD_CONDATTR_T: usize = 8;
+        // Now only librs implementation for blueos, for consistency
+        pub const __SIZEOF_PTHREAD_RWLOCK_T: usize = 4;
+        pub const __SIZEOF_PTHREAD_RWLOCKATTR_T: usize = 1;
         pub const __SIZEOF_PTHREAD_BARRIER_T: usize = 32;
     } else {
         const __PTHREAD_INITIALIZER_BYTE: u8 = 0;
@@ -1036,6 +1083,9 @@ cfg_if! {
     } else if #[cfg(target_os = "rtems")] {
         mod rtems;
         pub use self::rtems::*;
+    } else if #[cfg(target_os = "blueos")] {
+        mod blueos;
+        pub use self::blueos::*;
     } else {
         compile_error!("unsupported target");
     }

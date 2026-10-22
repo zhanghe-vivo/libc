@@ -25,7 +25,8 @@ cfg_if! {
     if #[cfg(any(
         target_os = "espidf",
         target_os = "horizon",
-        target_os = "vita"
+        target_os = "vita",
+        target_os = "blueos"
     ))] {
         pub type uid_t = c_ushort;
         pub type gid_t = c_ushort;
@@ -625,6 +626,10 @@ cfg_if! {
     } else if #[cfg(target_os = "haiku")] {
         #[link(name = "root")]
         #[link(name = "network")]
+        extern "C" {}
+    } else if #[cfg(target_os = "blueos")] {
+        // Not link to system's libc and libm, we're currently providing
+        // BlueOS libc in another crate.
         extern "C" {}
     } else if #[cfg(target_env = "newlib")] {
         #[link(name = "c")]

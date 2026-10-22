@@ -6,22 +6,29 @@
 //!
 //! The fixed-width integer aliases are deprecated: use the Rust types instead.
 
-// FIXME(1.0): Deprecate these aliases in a few releases, remove in 1.0.
-pub use core::ffi::{
-    c_char,
-    c_double,
-    c_float,
-    c_int,
-    c_long,
-    c_longlong,
-    c_schar,
-    c_short,
-    c_uchar,
-    c_uint,
-    c_ulong,
-    c_ulonglong,
-    c_ushort,
-};
+// BlueOS compiles C code with `-fsigned-char`, so use core::ffi's per-target
+// c_char which matches this (aarch64/arm/riscv default to unsigned in C, but
+// BlueOS's toolchain makes it signed).
+cfg_if! {
+    if #[cfg(target_os = "blueos")] {
+        pub use core::ffi::{
+            c_double, c_float, c_int, c_longlong, c_schar, c_short, c_uchar, c_uint, c_ulonglong,
+            c_ushort,
+        };
+
+        pub type c_char = i8;
+        // BlueOS uses 32-bit `long` on all targets (including 64-bit), matching the
+        // C code compiled with the BlueOS toolchain.
+        pub type c_long = i32;
+        pub type c_ulong = u32;
+    } else {
+        // FIXME(1.0): Deprecate these aliases in a few releases, remove in 1.0.
+        pub use core::ffi::{
+            c_char, c_double, c_float, c_int, c_long, c_longlong, c_schar, c_short, c_uchar,
+            c_uint, c_ulong, c_ulonglong, c_ushort,
+        };
+    }
+}
 
 #[deprecated(since = "0.2.55", note = "Use i8 instead.")]
 pub type int8_t = i8;
